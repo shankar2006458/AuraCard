@@ -91,6 +91,67 @@ body { overflow-x: hidden; }
 @media(min-width:768px){
   .phone-frame{width:300px;}
 }
+
+.testimonial-wrap{
+  position:relative;
+  overflow:hidden;
+  width:100%;
+}
+
+/* blur edges */
+.testimonial-wrap::before,
+.testimonial-wrap::after{
+  content:'';
+  position:absolute;
+  top:0;
+  width:70px;
+  height:100%;
+  z-index:5;
+  pointer-events:none;
+}
+
+.testimonial-wrap::before{
+  left:0;
+  background:linear-gradient(to right,#0a0a1a 0%,rgba(10,10,26,0) 100%);
+}
+
+.testimonial-wrap::after{
+  right:0;
+  background:linear-gradient(to left,#0a0a1a 0%,rgba(10,10,26,0) 100%);
+}
+
+/* moving track */
+#testimonial-track{
+  display:flex;
+  gap:20px;
+  width:max-content;
+  animation:marqueeMove 60s linear infinite;
+}
+
+#testimonial-track:hover{
+  animation-play-state:paused;
+}
+
+/* cards */
+#testimonial-track > div{
+  min-width:340px;
+  max-width:340px;
+  flex-shrink:0;
+  transition:transform .35s ease;
+}
+
+#testimonial-track > div:hover{
+  transform:translateY(-0px);
+}
+
+@keyframes marqueeMove{
+  from{
+    transform:translateX(0);
+  }
+  to{
+    transform:translateX(-50%);
+  }
+}
 </style>
   <style>body { box-sizing: border-box; }</style>
  </head>
@@ -123,9 +184,10 @@ body { overflow-x: hidden; }
     <nav class="fixed top-0 left-0 right-0 z-50 glass-strong">
      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2">
-       <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm">
-        A
-       </div><span class="font-bold text-lg tracking-tight">AuraCard</span>
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
+      <i data-lucide="sparkles" style="width:16px;height:16px"></i>
+      </div>
+       <span class="font-bold text-lg tracking-tight">AuraCard</span>
       </div>
       <div class="flex items-center gap-3">
        <button onclick="showPage('builder')" class="btn-ripple px-4 py-2 text-sm rounded-xl bg-white/10 hover:bg-white/20 transition-all">Create Card</button>
@@ -158,11 +220,13 @@ body { overflow-x: hidden; }
          <div class="absolute -inset-4 bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 rounded-[40px] blur-xl"></div>
          <div class="relative w-64 md:w-72 rounded-3xl overflow-hidden card-shadow bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-6 border border-white/10">
           <div class="flex flex-col items-center text-center">
-           <div class="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-3xl font-bold mb-3">
-            S
-           </div>
-           <h3 class="font-bold text-lg">Shankar Prasad</h3>
-           <p class="text-violet-300 text-sm">Full Stack Developer</p>
+          <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-violet-400/40 shadow-[0_0_25px_rgba(139,92,246,.35)] mb-3">            <img 
+              src="profilepic.jpg" 
+              class="w-full h-full object-cover"
+              alt="Profile">
+          </div>
+           <h3 class="font-bold text-lg">Shankar Prasad Pyke</h3>
+           <p class="text-violet-300 text-sm">Frontend Developer</p>
            <p class="text-gray-500 text-xs mt-1">TechCorp Solutions</p>
            <div class="flex gap-2 mt-4">
             <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="phone" style="width:14px;height:14px" class="text-green-400"></i>
@@ -174,9 +238,12 @@ body { overflow-x: hidden; }
             <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="linkedin" style="width:14px;height:14px" class="text-sky-400"></i>
             </div>
            </div>
-           <div class="w-16 h-16 bg-white rounded-lg mt-4 flex items-center justify-center">
-            <div class="w-12 h-12 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 4%22><rect x=%220%22 y=%220%22 width=%221%22 height=%221%22/><rect x=%222%22 y=%220%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%222%22 width=%221%22 height=%221%22/><rect x=%223%22 y=%221%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%223%22 width=%221%22 height=%221%22/></svg>')] bg-contain"></div>
-           </div>
+            <div class="w-16 h-16 bg-white rounded-lg mt-4 flex items-center justify-center">
+              <img 
+                src="websiteQR.png" 
+                class="w-12 h-12 object-cover"
+                alt="Profile">
+            </div>
           </div>
          </div>
         </div>
@@ -233,8 +300,9 @@ body { overflow-x: hidden; }
     <section class="py-20 px-4">
      <div class="max-w-5xl mx-auto">
       <h2 class="text-3xl font-bold text-center mb-12">Loved by <span class="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Professionals</span></h2>
-      <div class="grid md:grid-cols-3 gap-5">
-       <div class="glass rounded-2xl p-6">
+      <div class="overflow-hidden relative testimonial-wrap">
+      <div id="testimonial-track" class="flex gap-5 w-max">
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
         <div class="flex items-center gap-1 mb-3">
          <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
         </div>
@@ -249,7 +317,7 @@ body { overflow-x: hidden; }
          </div>
         </div>
        </div>
-       <div class="glass rounded-2xl p-6">
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
         <div class="flex items-center gap-1 mb-3">
          <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
         </div>
@@ -264,7 +332,7 @@ body { overflow-x: hidden; }
          </div>
         </div>
        </div>
-       <div class="glass rounded-2xl p-6">
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
         <div class="flex items-center gap-1 mb-3">
          <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
         </div>
@@ -279,7 +347,7 @@ body { overflow-x: hidden; }
          </div>
         </div>
        </div>
-       <div class="glass rounded-2xl p-6">
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
         <div class="flex items-center gap-1 mb-3">
          <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
         </div>
@@ -294,7 +362,7 @@ body { overflow-x: hidden; }
          </div>
         </div>
        </div>
-       <div class="glass rounded-2xl p-6">
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
         <div class="flex items-center gap-1 mb-3">
          <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
         </div>
@@ -309,7 +377,7 @@ body { overflow-x: hidden; }
          </div>
         </div>
        </div>
-       <div class="glass rounded-2xl p-6">
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
         <div class="flex items-center gap-1 mb-3">
          <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
         </div>
@@ -324,18 +392,215 @@ body { overflow-x: hidden; }
          </div>
         </div>
        </div>
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Clients instantly trust me more after sharing my AuraCard. Looks polished and modern."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-xs font-bold">S</div>
+          <div>
+            <p class="text-sm font-semibold">Sneha Roy</p>
+            <p class="text-xs text-gray-500">Sales Executive</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"The premium themes helped me stand out during networking events."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xs font-bold">K</div>
+          <div>
+            <p class="text-sm font-semibold">Karan Gill</p>
+            <p class="text-xs text-gray-500">Business Analyst</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Much better than carrying printed cards. Fast, clean, and memorable."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-xs font-bold">T</div>
+          <div>
+            <p class="text-sm font-semibold">Tanvi Patel</p>
+            <p class="text-xs text-gray-500">HR Manager</p>
+          </div>
+        </div>
+      </div>
+      <!-- DUPLICATE AGAIN -->
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Replaced my paper cards entirely. The QR code feature is brilliant — people scan and save my contact instantly."</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-xs font-bold">
+          A
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Anita Deshmukh</p>
+          <p class="text-xs text-gray-500">Marketing Lead</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"The Neon Glass theme is jaw-dropping. Clients always ask how I made my digital card. Clean and professional."</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xs font-bold">
+          R
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Raj Mehta</p>
+          <p class="text-xs text-gray-500">UX Designer</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"As a freelancer, this is my go-to. Takes 2 minutes to set up and the auto-save is a lifesaver. Highly recommend!"</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-xs font-bold">
+          P
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Priya Sharma</p>
+          <p class="text-xs text-gray-500">Freelance Developer</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Saves me hours every week. My network loves the instant access to my info. This is the future of business cards!"</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-xs font-bold">
+          N
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Neha Kapoor</p>
+          <p class="text-xs text-gray-500">Startup Founder</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Finally ditched my outdated resume. Clients now view my portfolio directly from my digital card. Game changer!"</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 flex items-center justify-center text-xs font-bold">
+          V
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Vikram Singh</p>
+          <p class="text-xs text-gray-500">Product Designer</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"The Royal Purple theme screams elegance. My consultancy now uses these for all client meetings. Impressive!"</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-bold">
+          M
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Meera Nayak</p>
+          <p class="text-xs text-gray-500">Management Consultant</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Clients instantly trust me more after sharing my AuraCard. Looks polished and modern."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center text-xs font-bold">S</div>
+          <div>
+            <p class="text-sm font-semibold">Sneha Roy</p>
+            <p class="text-xs text-gray-500">Sales Executive</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"The premium themes helped me stand out during networking events."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xs font-bold">K</div>
+          <div>
+            <p class="text-sm font-semibold">Karan Gill</p>
+            <p class="text-xs text-gray-500">Business Analyst</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6 min-w-full md:min-w-[calc(33.333%-14px)] flex-shrink-0">
+        <div class="flex items-center gap-1 mb-3">
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+          <i data-lucide="star" class="text-amber-400 fill-amber-400" style="width:14px;height:14px"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Much better than carrying printed cards. Fast, clean, and memorable."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-xs font-bold">T</div>
+          <div>
+            <p class="text-sm font-semibold">Tanvi Patel</p>
+            <p class="text-xs text-gray-500">HR Manager</p>
+          </div>
+        </div>
+      </div>
       </div>
      </div>
     </section><!-- Footer -->
     <footer class="py-8 px-4 border-t border-white/5">
      <div class="max-w-6xl mx-auto text-center">
       <div class="flex items-center justify-center gap-2 mb-3">
-       <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold">
-        A
-       </div><span class="font-semibold">AuraCard</span>
+      <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-md">
+      <i data-lucide="sparkles" style="width:12px;height:12px"></i>
+      </div><span class="font-semibold">AuraCard</span>
       </div>
       <p id="footer-credit" class="text-sm text-gray-500">Made with professionalism by Shankar Prasad Pyke</p>
-      <p class="text-xs text-gray-600 mt-1">© 2024 AuraCard. All rights reserved.</p>
+      <p class="text-xs text-gray-600 mt-1">© 2026 AuraCard. All rights reserved.</p>
      </div>
     </footer>
    </div><!-- ==================== BUILDER PAGE ==================== -->
@@ -346,8 +611,8 @@ body { overflow-x: hidden; }
       <div class="flex items-center gap-3">
        <button onclick="showPage('landing')" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"><i data-lucide="arrow-left" style="width:16px;height:16px"></i></button>
        <div class="flex items-center gap-2">
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold">
-         A
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-md">
+        <i data-lucide="sparkles" style="width:14px;height:14px"></i>
         </div><span class="font-semibold text-sm hidden sm:block">Card Builder</span>
        </div>
       </div>
@@ -396,7 +661,8 @@ body { overflow-x: hidden; }
          <p class="text-xs text-gray-500 mt-1">JPG, PNG. Max 2MB</p>
         </div>
        </div>
-      </div><!-- Theme & Color -->
+      </div>
+      <!-- Theme & Color -->
       <div class="glass rounded-2xl p-5">
        <h3 class="font-semibold text-sm text-violet-300 mb-4 flex items-center gap-2"><i data-lucide="palette" style="width:16px;height:16px"></i> Theme &amp; Style</h3>
        <div class="grid grid-cols-5 gap-2 mb-4">
@@ -509,12 +775,12 @@ body { overflow-x: hidden; }
       <div id="public-card" class="theme-executive min-h-[480px] p-5 transition-all duration-500" style="background: var(--card-bg)"></div>
      </div>
      <div class="mt-6 flex items-center gap-2 z-10">
-      <div class="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px] font-bold">
-       A
+      <div class="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 flex items-center justify-center shadow-md">
+      <i data-lucide="sparkles" style="width:10px;height:10px"></i>
       </div><span class="text-sm text-gray-400">Powered by <span class="text-white font-medium">AuraCard</span></span>
      </div><!-- AuraCard Badge on Public Card -->
      <div class="mt-4 flex justify-center z-10">
-      <div class="px-3 py-1.5 rounded-full glass text-xs font-medium text-violet-300 flex items-center gap-1.5"><i data-lucide="sparkles" style="width:12px;height:12px"></i> Made with AuraCard
+      <div class="px-3 py-1.5 rounded-full glass text-xs font-medium text-violet-300 flex items-center gap-1.5"><i data-lucide="sparkles" style="width:12px;height:12px"></i> Developed By ~ Shankar Prasad Pyke
       </div>
      </div>
     </div>
@@ -526,8 +792,7 @@ let currentTheme = 'executive';
 let photoData = null;
 let qrInstance = null;
 let shareQrInstance = null;
-let testimonialIndex = 0;
-let testimonialInterval = null;
+
 
 const fields = ['name','title','company','phone','whatsapp','email','website','address','bio','linkedin','instagram','facebook','twitter','youtube'];
 
@@ -1015,45 +1280,6 @@ document.addEventListener('click', (e) => {
   setTimeout(() => ripple.remove(), 600);
 });
 
-// ===== TESTIMONIAL CAROUSEL =====
-function showTestimonial(idx) {
-  const cards = document.querySelectorAll('.testimonial-card');
-  const indicators = document.querySelectorAll('.testimonial-indicator');
-  cards.forEach((card, i) => {
-    card.style.opacity = i === idx ? '1' : '0';
-    card.style.pointerEvents = i === idx ? 'auto' : 'none';
-  });
-  indicators.forEach((ind, i) => {
-    ind.classList.toggle('bg-violet-600', i === idx);
-    ind.classList.toggle('bg-white/30', i !== idx);
-  });
-}
-
-function nextTestimonial() {
-  testimonialIndex = (testimonialIndex + 1) % 6;
-  showTestimonial(testimonialIndex);
-  resetTestimonialInterval();
-}
-
-function prevTestimonial() {
-  testimonialIndex = (testimonialIndex - 1 + 6) % 6;
-  showTestimonial(testimonialIndex);
-  resetTestimonialInterval();
-}
-
-function goToTestimonial(idx) {
-  testimonialIndex = idx;
-  showTestimonial(testimonialIndex);
-  resetTestimonialInterval();
-}
-
-function resetTestimonialInterval() {
-  clearInterval(testimonialInterval);
-  testimonialInterval = setInterval(() => {
-    testimonialIndex = (testimonialIndex + 1) % 6;
-    showTestimonial(testimonialIndex);
-  }, 5000);
-}
 
 function showDemoPublicCard() {
   const demoData = {
@@ -1150,7 +1376,6 @@ setTimeout(() => {
 
 typeText();
 loadFromLS();
-resetTestimonialInterval();
 lucide.createIcons();
 
 const params = new URLSearchParams(window.location.search);
