@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraCard</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+  <script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { outfit: ['Outfit', 'sans-serif'] }
+    }
+  }
+}
+</script>
+  <style>
+html, body { height: 100%; margin: 0; font-family: 'Outfit', sans-serif; }
+body { overflow-x: hidden; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 3px; }
+
+/* Animations */
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes slideLeft { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
+@keyframes slideRight { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+@keyframes pulse-glow { 0%,100%{box-shadow:0 0 20px rgba(139,92,246,0.3)} 50%{box-shadow:0 0 40px rgba(139,92,246,0.6)} }
+@keyframes gradient-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes typing-cursor { 0%,100%{border-color:transparent} 50%{border-color:#a78bfa} }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+@keyframes ripple { to{transform:scale(4);opacity:0} }
+@keyframes card-entrance { from{opacity:0;transform:rotateY(15deg) scale(0.9)} to{opacity:1;transform:rotateY(0) scale(1)} }
+@keyframes blob { 0%,100%{border-radius:60% 40% 30% 70%/60% 30% 70% 40%} 50%{border-radius:30% 60% 70% 40%/50% 60% 30% 60%} }
+
+.anim-float { animation: float 3s ease-in-out infinite; }
+.anim-fade-up { animation: fadeUp 0.7s ease-out forwards; }
+.anim-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+.anim-slide-left { animation: slideLeft 0.6s ease-out forwards; }
+.anim-slide-right { animation: slideRight 0.6s ease-out forwards; }
+.anim-gradient { background-size: 200% 200%; animation: gradient-shift 4s ease infinite; }
+.anim-card { animation: card-entrance 0.8s ease-out forwards; }
+.anim-blob { animation: blob 8s ease-in-out infinite; }
+
+.glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.12); }
+.glass-strong { background: rgba(255,255,255,0.12); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.18); }
+.glass-light { background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
+
+.skeleton { background: linear-gradient(90deg, #1e1b4b 25%, #312e81 50%, #1e1b4b 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+
+.btn-ripple { position: relative; overflow: hidden; }
+.btn-ripple .ripple-effect { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.3); transform: scale(0); animation: ripple 0.6s linear; pointer-events: none; }
+
+.card-shadow { box-shadow: 0 25px 60px -12px rgba(0,0,0,0.4), 0 0 40px -8px rgba(139,92,246,0.15); }
+.card-shadow-light { box-shadow: 0 20px 50px -10px rgba(0,0,0,0.15), 0 0 30px -5px rgba(139,92,246,0.1); }
+
+.input-focus { transition: all 0.3s ease; }
+.input-focus:focus { box-shadow: 0 0 0 3px rgba(139,92,246,0.25); border-color: #8b5cf6; }
+
+/* Toast */
+.toast { transform: translateX(100%); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.toast.show { transform: translateX(0); opacity: 1; }
+
+/* Page transitions */
+.page { display: none; opacity: 0; }
+.page.active { display: block; animation: fadeIn 0.4s ease-out forwards; }
+
+/* Typing cursor */
+.typing-cursor { border-right: 2px solid #a78bfa; animation: typing-cursor 0.8s infinite; }
+
+/* Theme colors for card preview */
+.theme-executive { --card-bg: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 50%, #16213e 100%); --card-text: #ffffff; --card-sub: #a0aec0; --card-accent: #e2b04a; }
+.theme-minimal { --card-bg: linear-gradient(135deg, #ffffff 0%, #f7f8fc 100%); --card-text: #1a202c; --card-sub: #718096; --card-accent: #4a5568; }
+.theme-royal { --card-bg: linear-gradient(135deg, #1a0533 0%, #2d1b69 50%, #44337a 100%); --card-text: #ffffff; --card-sub: #c4b5fd; --card-accent: #a78bfa; }
+.theme-neon { --card-bg: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a1628 100%); --card-text: #00ff88; --card-sub: #67e8f9; --card-accent: #f472b6; }
+.theme-ocean { --card-bg: linear-gradient(135deg, #0c1445 0%, #0e4166 50%, #0c6b6b 100%); --card-text: #ffffff; --card-sub: #7dd3fc; --card-accent: #38bdf8; }
+
+.phone-frame{
+  width:260px;
+  border-radius:32px;
+  overflow:hidden;
+  position:relative;
+}
+@media(min-width:768px){
+  .phone-frame{width:300px;}
+}
+</style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full bg-[#0a0a1a] text-white font-outfit">
+  <div id="app" class="h-full overflow-auto w-full">
+   <!-- Toast Container -->
+   <div id="toast-container" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2"></div><!-- Skeleton Loading -->
+   <div id="skeleton-screen" class="fixed inset-0 z-[10000] bg-[#0a0a1a] flex items-center justify-center">
+    <div class="w-full max-w-md px-6 space-y-6">
+     <div class="flex items-center gap-3 mb-8">
+      <div class="w-10 h-10 rounded-xl skeleton"></div>
+      <div class="h-6 w-32 skeleton"></div>
+     </div>
+     <div class="h-48 w-full skeleton rounded-2xl"></div>
+     <div class="h-4 w-3/4 skeleton"></div>
+     <div class="h-4 w-1/2 skeleton"></div>
+     <div class="flex gap-3">
+      <div class="h-10 w-28 skeleton rounded-xl"></div>
+      <div class="h-10 w-28 skeleton rounded-xl"></div>
+     </div>
+     <div class="grid grid-cols-3 gap-4 mt-6">
+      <div class="h-24 skeleton rounded-xl"></div>
+      <div class="h-24 skeleton rounded-xl"></div>
+      <div class="h-24 skeleton rounded-xl"></div>
+     </div>
+    </div>
+   </div><!-- ==================== LANDING PAGE ==================== -->
+   <div id="page-landing" class="page active">
+    <!-- Nav -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-strong">
+     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+       <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm">
+        A
+       </div><span class="font-bold text-lg tracking-tight">AuraCard</span>
+      </div>
+      <div class="flex items-center gap-3">
+       <button onclick="showPage('builder')" class="btn-ripple px-4 py-2 text-sm rounded-xl bg-white/10 hover:bg-white/20 transition-all">Create Card</button>
+      </div>
+     </div>
+    </nav><!-- Hero -->
+    <section class="relative min-h-[100%] flex items-center justify-center overflow-hidden pt-16">
+     <!-- BG blobs -->
+     <div class="absolute top-20 left-10 w-72 h-72 bg-violet-600/20 rounded-full blur-[100px] anim-blob"></div>
+     <div class="absolute bottom-20 right-10 w-80 h-80 bg-fuchsia-600/20 rounded-full blur-[100px] anim-blob" style="animation-delay:-4s"></div>
+     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px]"></div>
+     <div class="relative z-10 max-w-6xl mx-auto px-4 py-20 flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+      <!-- Left -->
+      <div class="flex-1 text-center lg:text-left">
+       <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full glass text-xs text-violet-300 mb-6 anim-fade-up">
+        <i data-lucide="sparkles" style="width:14px;height:14px"></i> Premium Card Builder
+       </div>
+       <h1 id="hero-tagline" class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4 anim-fade-up" style="animation-delay:0.1s">Create Smart Digital<br><span class="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Visiting Cards</span> Instantly</h1>
+       <p id="hero-subtitle" class="text-base md:text-lg text-gray-400 mb-3 max-w-lg mx-auto lg:mx-0 anim-fade-up" style="animation-delay:0.2s">Design stunning, shareable digital business cards in minutes. Stand out with premium themes, QR codes, and instant sharing.</p>
+       <div class="h-7 mb-6 anim-fade-up" style="animation-delay:0.25s">
+        <span id="typing-text" class="text-sm text-violet-300/80 typing-cursor pr-1"></span>
+       </div>
+       <div class="flex flex-wrap gap-3 justify-center lg:justify-start anim-fade-up" style="animation-delay:0.3s">
+        <button onclick="showPage('builder')" class="btn-ripple px-6 py-3 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 font-semibold text-sm shadow-lg shadow-violet-500/25 transition-all hover:scale-105 flex items-center gap-2"> <i data-lucide="plus-circle" style="width:18px;height:18px"></i> Create Card </button> <button onclick="showDemoPublicCard()" class="btn-ripple px-6 py-3 rounded-2xl glass hover:bg-white/15 font-medium text-sm transition-all hover:scale-105 flex items-center gap-2"> <i data-lucide="eye" style="width:18px;height:18px"></i> View Demo </button>
+       </div>
+      </div><!-- Right: Floating card mockup -->
+      <div class="flex-1 flex justify-center anim-fade-up" style="animation-delay:0.4s">
+       <div class="anim-float">
+        <div class="relative">
+         <div class="absolute -inset-4 bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 rounded-[40px] blur-xl"></div>
+         <div class="relative w-64 md:w-72 rounded-3xl overflow-hidden card-shadow bg-gradient-to-br from-[#1a1a2e] to-[#16213e] p-6 border border-white/10">
+          <div class="flex flex-col items-center text-center">
+           <div class="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-3xl font-bold mb-3">
+            S
+           </div>
+           <h3 class="font-bold text-lg">Shankar Prasad</h3>
+           <p class="text-violet-300 text-sm">Full Stack Developer</p>
+           <p class="text-gray-500 text-xs mt-1">TechCorp Solutions</p>
+           <div class="flex gap-2 mt-4">
+            <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="phone" style="width:14px;height:14px" class="text-green-400"></i>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="mail" style="width:14px;height:14px" class="text-blue-400"></i>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="globe" style="width:14px;height:14px" class="text-purple-400"></i>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center"><i data-lucide="linkedin" style="width:14px;height:14px" class="text-sky-400"></i>
+            </div>
+           </div>
+           <div class="w-16 h-16 bg-white rounded-lg mt-4 flex items-center justify-center">
+            <div class="w-12 h-12 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 4 4%22><rect x=%220%22 y=%220%22 width=%221%22 height=%221%22/><rect x=%222%22 y=%220%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%222%22 width=%221%22 height=%221%22/><rect x=%223%22 y=%221%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%223%22 width=%221%22 height=%221%22/></svg>')] bg-contain"></div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section><!-- Features -->
+    <section class="py-20 px-4">
+     <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-14">
+       <h2 class="text-3xl md:text-4xl font-bold mb-3">Why Choose <span class="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">AuraCard</span>?</h2>
+       <p class="text-gray-400 max-w-md mx-auto">Everything you need to create a professional digital presence</p>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+       <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-violet-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><i data-lucide="palette" style="width:22px;height:22px" class="text-violet-400"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">5 Premium Themes</h3>
+        <p class="text-sm text-gray-400">From Executive Black to Neon Glass — pick the vibe that matches your brand.</p>
+       </div>
+       <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-fuchsia-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><i data-lucide="qr-code" style="width:22px;height:22px" class="text-fuchsia-400"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">QR Code Generator</h3>
+        <p class="text-sm text-gray-400">Auto-generated QR code for instant sharing. Download as PNG anytime.</p>
+       </div>
+       <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500/20 to-pink-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><i data-lucide="smartphone" style="width:22px;height:22px" class="text-pink-400"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">Mobile Optimized</h3>
+        <p class="text-sm text-gray-400">Looks stunning on any device. Designed mobile-first for perfect viewing.</p>
+       </div>
+       <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><i data-lucide="share-2" style="width:22px;height:22px" class="text-cyan-400"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">Instant Sharing</h3>
+        <p class="text-sm text-gray-400">Share your card via link or QR code with anyone, anywhere.</p>
+       </div>
+       <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><i data-lucide="save" style="width:22px;height:22px" class="text-emerald-400"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">Auto Save</h3>
+        <p class="text-sm text-gray-400">Your card data saves automatically. Pick up right where you left off.</p>
+       </div>
+       <div class="glass rounded-2xl p-6 hover:bg-white/10 transition-all hover:-translate-y-1 group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"><i data-lucide="zap" style="width:22px;height:22px" class="text-amber-400"></i>
+        </div>
+        <h3 class="font-semibold text-lg mb-2">No Sign Up</h3>
+        <p class="text-sm text-gray-400">Start building instantly. No accounts, no backends, 100% private.</p>
+       </div>
+      </div>
+     </div>
+    </section><!-- Testimonials -->
+    <section class="py-20 px-4">
+     <div class="max-w-5xl mx-auto">
+      <h2 class="text-3xl font-bold text-center mb-12">Loved by <span class="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Professionals</span></h2>
+      <div class="grid md:grid-cols-3 gap-5">
+       <div class="glass rounded-2xl p-6">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Replaced my paper cards entirely. The QR code feature is brilliant — people scan and save my contact instantly."</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 flex items-center justify-center text-xs font-bold">
+          A
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Anita Deshmukh</p>
+          <p class="text-xs text-gray-500">Marketing Lead</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"The Neon Glass theme is jaw-dropping. Clients always ask how I made my digital card. Clean and professional."</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-xs font-bold">
+          R
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Raj Mehta</p>
+          <p class="text-xs text-gray-500">UX Designer</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"As a freelancer, this is my go-to. Takes 2 minutes to set up and the auto-save is a lifesaver. Highly recommend!"</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-xs font-bold">
+          P
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Priya Sharma</p>
+          <p class="text-xs text-gray-500">Freelance Developer</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Saves me hours every week. My network loves the instant access to my info. This is the future of business cards!"</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-xs font-bold">
+          N
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Neha Kapoor</p>
+          <p class="text-xs text-gray-500">Startup Founder</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"Finally ditched my outdated resume. Clients now view my portfolio directly from my digital card. Game changer!"</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 flex items-center justify-center text-xs font-bold">
+          V
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Vikram Singh</p>
+          <p class="text-xs text-gray-500">Product Designer</p>
+         </div>
+        </div>
+       </div>
+       <div class="glass rounded-2xl p-6">
+        <div class="flex items-center gap-1 mb-3">
+         <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i> <i data-lucide="star" style="width:14px;height:14px" class="text-amber-400 fill-amber-400"></i>
+        </div>
+        <p class="text-sm text-gray-300 mb-4">"The Royal Purple theme screams elegance. My consultancy now uses these for all client meetings. Impressive!"</p>
+        <div class="flex items-center gap-3">
+         <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-xs font-bold">
+          M
+         </div>
+         <div>
+          <p class="text-sm font-semibold">Meera Nayak</p>
+          <p class="text-xs text-gray-500">Management Consultant</p>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section><!-- Footer -->
+    <footer class="py-8 px-4 border-t border-white/5">
+     <div class="max-w-6xl mx-auto text-center">
+      <div class="flex items-center justify-center gap-2 mb-3">
+       <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold">
+        A
+       </div><span class="font-semibold">AuraCard</span>
+      </div>
+      <p id="footer-credit" class="text-sm text-gray-500">Made with professionalism by Shankar Prasad Pyke</p>
+      <p class="text-xs text-gray-600 mt-1">© 2024 AuraCard. All rights reserved.</p>
+     </div>
+    </footer>
+   </div><!-- ==================== BUILDER PAGE ==================== -->
+   <div id="page-builder" class="page">
+    <!-- Builder Nav -->
+    <nav class="sticky top-0 z-50 glass-strong">
+     <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+       <button onclick="showPage('landing')" class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all"><i data-lucide="arrow-left" style="width:16px;height:16px"></i></button>
+       <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold">
+         A
+        </div><span class="font-semibold text-sm hidden sm:block">Card Builder</span>
+       </div>
+      </div>
+      <div class="flex items-center gap-2">
+       <button onclick="loadDemo()" class="btn-ripple px-3 py-1.5 text-xs rounded-lg bg-white/10 hover:bg-white/20 transition-all flex items-center gap-1"><i data-lucide="wand-2" style="width:12px;height:12px"></i> <span class="hidden sm:inline">Demo</span></button> <button onclick="resetCard()" class="btn-ripple px-3 py-1.5 text-xs rounded-lg bg-white/10 hover:bg-white/20 transition-all flex items-center gap-1"><i data-lucide="rotate-ccw" style="width:12px;height:12px"></i> <span class="hidden sm:inline">Reset</span></button>
+      </div>
+     </div>
+    </nav>
+    <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+     <!-- LEFT: Form Panel -->
+     <div class="flex-1 space-y-4 anim-slide-left">
+      <!-- Personal Info -->
+      <div class="glass rounded-2xl p-5">
+       <h3 class="font-semibold text-sm text-violet-300 mb-4 flex items-center gap-2"><i data-lucide="user" style="width:16px;height:16px"></i> Personal Information</h3>
+       <div class="grid sm:grid-cols-2 gap-3">
+        <div><label class="text-xs text-gray-400 mb-1 block" for="f-name">Full Name *</label><input id="f-name" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="John Doe" oninput="updatePreview()">
+        </div>
+        <div><label class="text-xs text-gray-400 mb-1 block" for="f-title">Job Title</label><input id="f-title" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="Software Engineer" oninput="updatePreview()">
+        </div>
+        <div><label class="text-xs text-gray-400 mb-1 block" for="f-company">Company</label><input id="f-company" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="TechCorp" oninput="updatePreview()">
+        </div>
+        <div><label class="text-xs text-gray-400 mb-1 block" for="f-phone">Phone</label><input id="f-phone" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="+91 98765 43210" oninput="updatePreview()">
+        </div>
+        <div><label class="text-xs text-gray-400 mb-1 block" for="f-whatsapp">WhatsApp</label><input id="f-whatsapp" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="+91 98765 43210" oninput="updatePreview()">
+        </div>
+        <div><label class="text-xs text-gray-400 mb-1 block" for="f-email">Email</label><input id="f-email" type="email" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="john@example.com" oninput="updatePreview()">
+        </div>
+        <div><label class="text-xs text-gray-400 mb-1 block" for="f-website">Website</label><input id="f-website" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="https://example.com" oninput="updatePreview()">
+        </div>
+        <div><label class="text-xs text-gray-400 mb-1 block" for="f-address">Address</label><input id="f-address" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="Mumbai, India" oninput="updatePreview()">
+        </div>
+       </div>
+       <div class="mt-3">
+        <div class="flex justify-between items-center mb-1"><label class="text-xs text-gray-400" for="f-bio">Bio</label><span id="bio-counter" class="text-xs text-gray-500">0/160</span>
+        </div><textarea id="f-bio" rows="2" maxlength="160" class="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none resize-none" placeholder="A short professional bio..." oninput="updateBioCounter(); updatePreview()"></textarea>
+       </div>
+      </div><!-- Photo -->
+      <div class="glass rounded-2xl p-5">
+       <h3 class="font-semibold text-sm text-violet-300 mb-4 flex items-center gap-2"><i data-lucide="camera" style="width:16px;height:16px"></i> Profile Photo</h3>
+       <div class="flex items-center gap-4">
+        <div id="photo-preview" class="w-16 h-16 rounded-2xl bg-white/5 border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden">
+         <i data-lucide="image" style="width:20px;height:20px" class="text-gray-500" id="photo-placeholder-icon"></i>
+        </div>
+        <div>
+         <label for="f-photo" class="btn-ripple inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 text-sm cursor-pointer transition-all"><i data-lucide="upload" style="width:14px;height:14px"></i> Upload Photo</label> <input id="f-photo" type="file" accept="image/*" class="hidden" onchange="handlePhotoUpload(event)">
+         <p class="text-xs text-gray-500 mt-1">JPG, PNG. Max 2MB</p>
+        </div>
+       </div>
+      </div><!-- Theme & Color -->
+      <div class="glass rounded-2xl p-5">
+       <h3 class="font-semibold text-sm text-violet-300 mb-4 flex items-center gap-2"><i data-lucide="palette" style="width:16px;height:16px"></i> Theme &amp; Style</h3>
+       <div class="grid grid-cols-5 gap-2 mb-4">
+        <button onclick="setTheme('executive')" class="theme-btn group flex flex-col items-center gap-1.5 p-2 rounded-xl border border-white/10 hover:border-violet-500/50 transition-all" data-theme="executive">
+         <div class="w-full h-8 rounded-lg bg-gradient-to-br from-[#0f0f0f] to-[#1a1a2e]"></div><span class="text-[10px] text-gray-400 group-hover:text-white">Executive</span> </button> <button onclick="setTheme('minimal')" class="theme-btn group flex flex-col items-center gap-1.5 p-2 rounded-xl border border-white/10 hover:border-violet-500/50 transition-all" data-theme="minimal">
+         <div class="w-full h-8 rounded-lg bg-gradient-to-br from-white to-gray-100"></div><span class="text-[10px] text-gray-400 group-hover:text-white">Minimal</span> </button> <button onclick="setTheme('royal')" class="theme-btn group flex flex-col items-center gap-1.5 p-2 rounded-xl border border-white/10 hover:border-violet-500/50 transition-all" data-theme="royal">
+         <div class="w-full h-8 rounded-lg bg-gradient-to-br from-[#1a0533] to-[#44337a]"></div><span class="text-[10px] text-gray-400 group-hover:text-white">Royal</span> </button> <button onclick="setTheme('neon')" class="theme-btn group flex flex-col items-center gap-1.5 p-2 rounded-xl border border-white/10 hover:border-violet-500/50 transition-all" data-theme="neon">
+         <div class="w-full h-8 rounded-lg bg-gradient-to-br from-[#0a0a0a] to-[#0a1628] border border-green-500/30"></div><span class="text-[10px] text-gray-400 group-hover:text-white">Neon</span> </button> <button onclick="setTheme('ocean')" class="theme-btn group flex flex-col items-center gap-1.5 p-2 rounded-xl border border-white/10 hover:border-violet-500/50 transition-all" data-theme="ocean">
+         <div class="w-full h-8 rounded-lg bg-gradient-to-br from-[#0c1445] to-[#0c6b6b]"></div><span class="text-[10px] text-gray-400 group-hover:text-white">Ocean</span> </button>
+       </div>
+       <div class="flex items-center gap-3">
+        <label class="text-xs text-gray-400" for="f-color">Brand Color</label> <input id="f-color" type="color" value="#8b5cf6" class="w-8 h-8 rounded-lg border-0 cursor-pointer bg-transparent" onchange="updatePreview()"> <span id="color-hex" class="text-xs text-gray-500">#8b5cf6</span>
+       </div>
+      </div><!-- Social Links -->
+      <div class="glass rounded-2xl p-5">
+       <h3 class="font-semibold text-sm text-violet-300 mb-4 flex items-center gap-2"><i data-lucide="share-2" style="width:16px;height:16px"></i> Social Links</h3>
+       <div class="space-y-3">
+        <div class="flex items-center gap-2">
+         <div class="w-8 h-8 rounded-lg bg-[#0077b5]/20 flex items-center justify-center flex-shrink-0"><i data-lucide="linkedin" style="width:14px;height:14px" class="text-[#0077b5]"></i>
+         </div><input id="f-linkedin" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="LinkedIn URL" oninput="updatePreview()">
+        </div>
+        <div class="flex items-center gap-2">
+         <div class="w-8 h-8 rounded-lg bg-[#E4405F]/20 flex items-center justify-center flex-shrink-0"><i data-lucide="instagram" style="width:14px;height:14px" class="text-[#E4405F]"></i>
+         </div><input id="f-instagram" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="Instagram URL" oninput="updatePreview()">
+        </div>
+        <div class="flex items-center gap-2">
+         <div class="w-8 h-8 rounded-lg bg-[#1877F2]/20 flex items-center justify-center flex-shrink-0"><i data-lucide="facebook" style="width:14px;height:14px" class="text-[#1877F2]"></i>
+         </div><input id="f-facebook" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="Facebook URL" oninput="updatePreview()">
+        </div>
+        <div class="flex items-center gap-2">
+         <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0"><i data-lucide="twitter" style="width:14px;height:14px" class="text-gray-300"></i>
+         </div><input id="f-twitter" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="X (Twitter) URL" oninput="updatePreview()">
+        </div>
+        <div class="flex items-center gap-2">
+         <div class="w-8 h-8 rounded-lg bg-[#FF0000]/20 flex items-center justify-center flex-shrink-0"><i data-lucide="youtube" style="width:14px;height:14px" class="text-[#FF0000]"></i>
+         </div><input id="f-youtube" class="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm input-focus outline-none" placeholder="YouTube URL" oninput="updatePreview()">
+        </div>
+       </div>
+      </div><!-- Action Buttons (visible on mobile below form) -->
+      <div class="flex flex-wrap gap-2 lg:hidden pb-4">
+       <button onclick="saveCard()" class="btn-ripple flex-1 min-w-[120px] px-4 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 font-semibold text-sm flex items-center justify-center gap-2"><i data-lucide="save" style="width:16px;height:16px"></i> Save</button> <button onclick="shareCard()" class="btn-ripple flex-1 min-w-[120px] px-4 py-3 rounded-xl glass font-medium text-sm flex items-center justify-center gap-2"><i data-lucide="share-2" style="width:16px;height:16px"></i> Share</button> <button onclick="downloadQR()" class="btn-ripple flex-1 min-w-[120px] px-4 py-3 rounded-xl glass font-medium text-sm flex items-center justify-center gap-2"><i data-lucide="download" style="width:16px;height:16px"></i> QR</button>
+      </div>
+     </div><!-- RIGHT: Preview Panel -->
+     <div class="lg:w-[380px] flex-shrink-0 anim-slide-right">
+      <div class="lg:sticky lg:top-20 space-y-4">
+       <div class="flex items-center justify-between mb-2">
+        <h3 class="font-semibold text-sm text-gray-400 flex items-center gap-2"><i data-lucide="eye" style="width:14px;height:14px"></i> Live Preview</h3>
+        <div class="hidden lg:flex gap-2">
+         <button onclick="saveCard()" class="btn-ripple px-3 py-1.5 text-xs rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 font-medium flex items-center gap-1"><i data-lucide="save" style="width:12px;height:12px"></i> Save</button> <button onclick="shareCard()" class="btn-ripple px-3 py-1.5 text-xs rounded-lg glass font-medium flex items-center gap-1"><i data-lucide="share-2" style="width:12px;height:12px"></i> Share</button> <button onclick="downloadQR()" class="btn-ripple px-3 py-1.5 text-xs rounded-lg glass font-medium flex items-center gap-1"><i data-lucide="download" style="width:12px;height:12px"></i> QR</button>
+        </div>
+       </div><!-- Phone Frame Preview -->
+       <div class="flex justify-center">
+        <div class="phone-frame card-shadow border-4 border-gray-800 bg-black">
+         <div id="card-preview" class="theme-executive min-h-[480px] p-5 transition-all duration-500" style="background: var(--card-bg)">
+          <!-- Empty state -->
+          <div id="empty-state" class="flex flex-col items-center justify-center h-full text-center py-16">
+           <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4"><i data-lucide="user-plus" style="width:28px;height:28px" class="text-gray-600"></i>
+           </div>
+           <p class="text-sm text-gray-500 font-medium">Start filling your details</p>
+           <p class="text-xs text-gray-600 mt-1">Your card preview will appear here</p>
+          </div><!-- Card content (hidden initially) -->
+          <div id="card-content" class="hidden">
+           <div class="flex flex-col items-center text-center">
+            <!-- Profile photo -->
+            <div id="preview-photo" class="w-24 h-24 rounded-full border-3 flex items-center justify-center mb-3 overflow-hidden bg-white/10" style="border-color: var(--card-accent)">
+             <span id="preview-initials" class="text-2xl font-bold" style="color: var(--card-accent)"></span> <img id="preview-photo-img" class="w-full h-full object-cover hidden" alt="Profile">
+            </div>
+            <h2 id="preview-name" class="text-[28px] font-bold leading-tight mt-1" style="color: var(--card-text)"></h2>
+            <p id="preview-title" class="text-sm mt-1 font-semibold" style="color: var(--card-accent)"></p>
+            <p id="preview-company" class="text-xs mt-0.5" style="color: var(--card-sub)"></p>
+            <p id="preview-bio" class="text-xs mt-3 px-2 leading-relaxed" style="color: var(--card-sub)"></p><!-- Contact buttons -->
+            <div id="preview-contacts" class="flex flex-wrap gap-2 mt-4 justify-center"></div><!-- Social icons -->
+            <div id="preview-socials" class="flex gap-2 mt-4 justify-center"></div><!-- Address -->
+            <p id="preview-address" class="text-xs mt-3 flex items-center gap-1" style="color: var(--card-sub)"></p><!-- QR -->
+            <div id="preview-qr" class="mt-4 p-2 bg-white rounded-xl inline-block"></div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div><!-- ==================== SHARE MODAL ==================== -->
+   <div id="share-modal" class="fixed inset-0 z-[9998] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeShareModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+     <div class="glass-strong rounded-3xl p-6 w-full max-w-md relative anim-fade-up">
+      <button onclick="closeShareModal()" class="absolute top-4 right-4 w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center"><i data-lucide="x" style="width:16px;height:16px"></i></button>
+      <h3 class="font-bold text-lg mb-1">Share Your Card</h3>
+      <p class="text-sm text-gray-400 mb-5">Share your digital visiting card with anyone</p><!-- Card link -->
+      <div class="flex items-center gap-2 mb-4">
+       <div class="flex-1 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-violet-300 truncate" id="share-link">
+        https://shankar2006458.github.io/AuraCard/
+       </div><button onclick="copyShareLink()" class="btn-ripple px-3 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-sm font-medium flex items-center gap-1 transition-all"><i data-lucide="copy" style="width:14px;height:14px"></i> Copy</button>
+      </div><!-- QR for sharing -->
+      <div class="flex justify-center mb-4">
+       <div id="share-qr" class="p-3 bg-white rounded-2xl"></div>
+      </div><button onclick="downloadQR()" class="w-full btn-ripple px-4 py-3 rounded-xl glass hover:bg-white/15 text-sm font-medium flex items-center justify-center gap-2 transition-all"><i data-lucide="download" style="width:16px;height:16px"></i> Download QR Code</button> <!-- Public preview button --> <button onclick="showPublicView()" class="w-full btn-ripple mt-2 px-4 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"><i data-lucide="external-link" style="width:16px;height:16px"></i> View Public Card</button>
+     </div>
+    </div>
+   </div><!-- ==================== PUBLIC VIEW ==================== -->
+   <div id="page-public" class="page">
+    <div class="min-h-[100%] flex flex-col items-center justify-center p-4 relative" style="background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 50%, #0a1a2e 100%)">
+     <div class="absolute top-20 left-10 w-64 h-64 bg-violet-600/10 rounded-full blur-[80px] anim-blob"></div>
+     <div class="absolute bottom-20 right-10 w-72 h-72 bg-fuchsia-600/10 rounded-full blur-[80px] anim-blob" style="animation-delay:-4s"></div><button id="public-back-btn" onclick="showPage('builder')" class="mb-6 btn-ripple px-4 py-2 rounded-xl glass hover:bg-white/15 text-sm flex items-center gap-2 transition-all z-10"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> Back to Editor</button> <!-- Demo badge (shown only in demo mode) -->
+     <div id="demo-badge" class="mb-4 px-3 py-1.5 rounded-full glass text-xs font-medium text-violet-300 flex items-center gap-1.5 z-10 hidden"><i data-lucide="sparkles" style="width:12px;height:12px"></i> Live Demo Card
+     </div>
+     <div class="phone-frame card-shadow border-4 border-gray-800 bg-black z-10 anim-card">
+      <div id="public-card" class="theme-executive min-h-[480px] p-5 transition-all duration-500" style="background: var(--card-bg)"></div>
+     </div>
+     <div class="mt-6 flex items-center gap-2 z-10">
+      <div class="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-[8px] font-bold">
+       A
+      </div><span class="text-sm text-gray-400">Powered by <span class="text-white font-medium">AuraCard</span></span>
+     </div><!-- AuraCard Badge on Public Card -->
+     <div class="mt-4 flex justify-center z-10">
+      <div class="px-3 py-1.5 rounded-full glass text-xs font-medium text-violet-300 flex items-center gap-1.5"><i data-lucide="sparkles" style="width:12px;height:12px"></i> Made with AuraCard
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+// ===== STATE =====
+let currentTheme = 'executive';
+let photoData = null;
+let qrInstance = null;
+let shareQrInstance = null;
+let testimonialIndex = 0;
+let testimonialInterval = null;
+
+const fields = ['name','title','company','phone','whatsapp','email','website','address','bio','linkedin','instagram','facebook','twitter','youtube'];
+
+// ===== ELEMENT SDK =====
+const defaultConfig = {
+  hero_tagline: 'Create Smart Digital Visiting Cards Instantly',
+  hero_subtitle: 'Design stunning, shareable digital business cards in minutes. Stand out with premium themes, QR codes, and instant sharing.',
+  footer_text: 'Made with professionalism by Shankar Prasad Pyke',
+  background_color: '#0a0a1a',
+  surface_color: '#1a1a2e',
+  text_color: '#ffffff',
+  accent_color: '#8b5cf6',
+  secondary_action_color: '#a78bfa',
+  font_family: 'Outfit',
+  font_size: 16
+};
+
+function applyConfig(config) {
+  const el = (id) => document.getElementById(id);
+  const c = (k) => config[k] || defaultConfig[k];
+
+  if (el('hero-tagline')) {
+    const t = c('hero_tagline');
+    el('hero-tagline').innerHTML = t.replace(/(Visiting Cards)/i, '<span class="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">$1</span>');
+  }
+  if (el('hero-subtitle')) el('hero-subtitle').textContent = c('hero_subtitle');
+  if (el('footer-credit')) el('footer-credit').textContent = c('footer_text');
+
+  const font = c('font_family');
+  const size = c('font_size');
+  document.body.style.fontFamily = `${font}, Outfit, sans-serif`;
+  document.querySelectorAll('h1').forEach(h => h.style.fontSize = `${size * 2.8}px`);
+  document.querySelectorAll('h2').forEach(h => h.style.fontSize = `${size * 1.8}px`);
+  document.querySelectorAll('h3').forEach(h => h.style.fontSize = `${size * 1.1}px`);
+}
+
+// ===== PAGES =====
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('app').scrollTop = 0;
+  if (page === 'builder') { updatePreview(); }
+  setTimeout(() => lucide.createIcons(), 50);
+}
+
+// ===== TYPING ANIMATION =====
+const typingPhrases = ['Designed for Professionals', 'Freelancers', 'Businesses', 'Students'];
+let typingIdx = 0, charIdx = 0, typingDeleting = false;
+function typeText() {
+  const el = document.getElementById('typing-text');
+  if (!el) return;
+  const phrase = typingPhrases[typingIdx];
+  if (!typingDeleting) {
+    el.textContent = phrase.substring(0, charIdx++);
+    if (charIdx > phrase.length) { typingDeleting = true; setTimeout(typeText, 1500); return; }
+  } else {
+    el.textContent = phrase.substring(0, charIdx--);
+    if (charIdx < 0) { typingDeleting = false; charIdx = 0; typingIdx = (typingIdx + 1) % typingPhrases.length; }
+  }
+  setTimeout(typeText, typingDeleting ? 30 : 60);
+}
+
+// ===== TOAST =====
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  const colors = { success: 'from-emerald-500/20 to-emerald-500/5 border-emerald-500/30', error: 'from-red-500/20 to-red-500/5 border-red-500/30', info: 'from-blue-500/20 to-blue-500/5 border-blue-500/30' };
+  const icons = { success: 'check-circle', error: 'alert-circle', info: 'info' };
+  toast.className = `toast flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r ${colors[type]} border backdrop-blur-xl`;
+  toast.innerHTML = `<i data-lucide="${icons[type]}" style="width:18px;height:18px" class="flex-shrink-0"></i><span class="text-sm">${msg}</span>`;
+  container.appendChild(toast);
+  lucide.createIcons();
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+}
+
+// ===== BIO COUNTER =====
+function updateBioCounter() {
+  const bio = document.getElementById('f-bio');
+  document.getElementById('bio-counter').textContent = `${bio.value.length}/160`;
+}
+
+// ===== PHOTO UPLOAD =====
+function handlePhotoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) { showToast('Photo must be under 2MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    photoData = e.target.result;
+    const preview = document.getElementById('photo-preview');
+    preview.innerHTML = `<img src="${photoData}" class="w-full h-full object-cover" alt="Profile">`;
+    updatePreview();
+    saveToLS();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ===== THEME =====
+function setTheme(theme) {
+  currentTheme = theme;
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('border-violet-500', btn.dataset.theme === theme);
+    btn.classList.toggle('border-white/10', btn.dataset.theme !== theme);
+  });
+  updatePreview();
+  saveToLS();
+}
+
+// ===== PREVIEW =====
+function getFormData() {
+  const data = {};
+  fields.forEach(f => { data[f] = document.getElementById('f-' + f)?.value || ''; });
+  data.color = document.getElementById('f-color')?.value || '#8b5cf6';
+  data.theme = currentTheme;
+  data.photo = photoData;
+  return data;
+}
+
+function updatePreview() {
+  const data = getFormData();
+  const colorHex = document.getElementById('color-hex');
+  if (colorHex) colorHex.textContent = data.color;
+
+  const hasData = data.name.trim().length > 0;
+  const emptyState = document.getElementById('empty-state');
+  const cardContent = document.getElementById('card-content');
+  if (emptyState) emptyState.classList.toggle('hidden', hasData);
+  if (cardContent) cardContent.classList.toggle('hidden', !hasData);
+
+  if (!hasData) return;
+
+  const preview = document.getElementById('card-preview');
+  preview.className = `theme-${data.theme} min-h-[480px] p-4 transition-all duration-500`;
+  preview.style.background = 'var(--card-bg)';
+
+  // Photo/initials
+  const initials = data.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+  const previewInitials = document.getElementById('preview-initials');
+  const previewPhotoImg = document.getElementById('preview-photo-img');
+  if (data.photo) {
+    previewPhotoImg.src = data.photo;
+    previewPhotoImg.classList.remove('hidden');
+    previewInitials.classList.add('hidden');
+  } else {
+    previewPhotoImg.classList.add('hidden');
+    previewInitials.classList.remove('hidden');
+    previewInitials.textContent = initials;
+  }
+
+  document.getElementById('preview-name').textContent = data.name;
+  document.getElementById('preview-title').textContent = data.title;
+  document.getElementById('preview-company').textContent = data.company;
+
+  const bioEl = document.getElementById('preview-bio');
+  bioEl.textContent = data.bio;
+  bioEl.classList.toggle('hidden', !data.bio);
+
+  // Contact buttons (icons only)
+// Premium Contact Rows
+const contacts = document.getElementById('preview-contacts');
+contacts.innerHTML = '';
+contacts.className = 'mt-3 w-full flex flex-col gap-2';
+
+function makeRow(label, icon, text, href, color) {
+  const isLight = data.theme === 'minimal';
+  const mainText = isLight ? '#111827' : '#ffffff';
+  const subBg = isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)';
+
+  const a = document.createElement('a');
+
+  if (href) {
+    a.href = href;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+  } else {
+    a.href = 'javascript:void(0)';
+  }
+
+  a.className =
+    'group flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all duration-300';
+
+  a.style.background = subBg;
+  a.style.borderColor = `${color}45`;
+  a.style.boxShadow = `0 0 0 1px ${color}15 inset`;
+
+  a.innerHTML = `
+    <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+         style="background:${color}18">
+      <i data-lucide="${icon}" style="width:16px;height:16px;color:${color}"></i>
+    </div>
+
+    <div class="flex-1 min-w-0 text-left leading-tight">
+      <div style="color:${color}" class="text-[9px] uppercase font-semibold tracking-[2px] mb-0.5">
+        ${label}
+      </div>
+
+      <div class="text-[14px] font-semibold truncate"
+           style="color:${mainText}">
+        ${text}
+      </div>
+    </div>
+
+    <div class="w-8 h-8 rounded-full flex items-center justify-center"
+         style="background:${color}14">
+      <i data-lucide="chevron-right"
+         style="width:14px;height:14px;color:${color}"></i>
+    </div>
+  `;
+
+  contacts.appendChild(a);
+}
+
+// Phone
+if (data.phone) {
+  makeRow(
+    'Phone',
+    'phone',
+    data.phone,
+    `tel:${data.phone.replace(/\s/g,'')}`,
+    '#8b5cf6'
+  );
+}
+
+// WhatsApp
+if (data.whatsapp) {
+  makeRow(
+    'WhatsApp',
+    'message-circle',
+    data.whatsapp,
+    `https://wa.me/${data.whatsapp.replace(/[\s+]/g,'')}`,
+    '#22c55e'
+  );
+}
+
+// Email
+if (data.email) {
+  makeRow(
+    'Email',
+    'mail',
+    data.email,
+    `mailto:${data.email}`,
+    '#ec4899'
+  );
+}
+
+// Website
+if (data.website) {
+  makeRow(
+    'Website',
+    'globe',
+    data.website.replace(/^https?:\/\//,''),
+    data.website.startsWith('http') ? data.website : `https://${data.website}`,
+    '#3b82f6'
+  );
+}
+
+  // Social icons
+  const socials = document.getElementById('preview-socials');
+  socials.innerHTML = '';
+  const socialItems = [
+    { val: data.linkedin, icon: 'linkedin', color: '#0077b5' },
+    { val: data.instagram, icon: 'instagram', color: '#E4405F' },
+    { val: data.facebook, icon: 'facebook', color: '#1877F2' },
+    { val: data.twitter, icon: 'twitter', color: '#888' },
+    { val: data.youtube, icon: 'youtube', color: '#FF0000' }
+  ];
+  socialItems.forEach(s => {
+    if (!s.val) return;
+    const a = document.createElement('a');
+    a.href = s.val.startsWith('http') ? s.val : `https://${s.val}`;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.className = 'w-8 h-8 rounded-lg flex items-center justify-center transition-transform hover:scale-110';
+    a.style.background = `${s.color}20`;
+    a.innerHTML = `<i data-lucide="${s.icon}" style="width:13px;height:13px;color:${s.color}"></i>`;
+    socials.appendChild(a);
+  });
+
+  // Address
+  const addrEl = document.getElementById('preview-address');
+  if (data.address) {
+    addrEl.classList.remove('hidden');
+    addrEl.innerHTML = `<i data-lucide="map-pin" style="width:12px;height:12px"></i> ${data.address}`;
+  } else {
+    addrEl.classList.add('hidden');
+  }
+
+  // QR
+  generateQR(data);
+
+  lucide.createIcons();
+  saveToLS();
+}
+
+function generateQR(data) {
+  const qrContainer = document.getElementById('preview-qr');
+  qrContainer.innerHTML = '';
+  const slug = data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'user';
+  try {
+    qrInstance = new QRCode(qrContainer, {
+      text: `https://shankar2006458.github.io/AuraCard/?card=${slug}`,
+      width: 80, height: 80,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {}
+}
+
+// ===== SAVE =====
+function saveCard() {
+  const data = getFormData();
+  if (!data.name.trim()) { showToast('Please enter your name first', 'error'); return; }
+  localStorage.setItem('auracard_data', JSON.stringify(data));
+  showToast('Card saved successfully!', 'success');
+}
+
+function saveToLS() {
+  const data = getFormData();
+  if (data.name.trim()) localStorage.setItem('auracard_data', JSON.stringify(data));
+}
+
+function loadFromLS() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('auracard_data'));
+    if (!saved) return false;
+    fields.forEach(f => { const el = document.getElementById('f-' + f); if (el && saved[f]) el.value = saved[f]; });
+    if (saved.color) document.getElementById('f-color').value = saved.color;
+    if (saved.theme) setTheme(saved.theme);
+    if (saved.photo) {
+      photoData = saved.photo;
+      document.getElementById('photo-preview').innerHTML = `<img src="${photoData}" class="w-full h-full object-cover" alt="Profile">`;
+    }
+    updateBioCounter();
+    return true;
+  } catch(e) { return false; }
+}
+
+function resetCard() {
+  fields.forEach(f => { const el = document.getElementById('f-' + f); if (el) el.value = ''; });
+  document.getElementById('f-color').value = '#8b5cf6';
+  photoData = null;
+  document.getElementById('photo-preview').innerHTML = '<i data-lucide="image" style="width:20px;height:20px" class="text-gray-500"></i>';
+  setTheme('executive');
+  updateBioCounter();
+  updatePreview();
+  localStorage.removeItem('auracard_data');
+  lucide.createIcons();
+  showToast('Card reset', 'info');
+}
+
+// ===== DEMO =====
+function loadDemo() {
+  const demo = {
+    name: 'Shankar Prasad Pyke', title: 'Full Stack Developer', company: 'TechCorp Solutions',
+    phone: '+91 98765 43210', whatsapp: '+91 98765 43210', email: 'shankar@techcorp.dev',
+    website: 'https://shankar.dev', address: 'Hyderabad, India',
+    bio: 'Building scalable web applications & crafting digital experiences. Open source enthusiast.',
+    linkedin: 'https://linkedin.com/in/shankar', instagram: 'https://instagram.com/shankar.dev',
+    facebook: '', twitter: 'https://x.com/shankar_dev', youtube: ''
+  };
+  fields.forEach(f => { const el = document.getElementById('f-' + f); if (el) el.value = demo[f] || ''; });
+  document.getElementById('f-color').value = '#8b5cf6';
+  setTheme('neon');
+  updateBioCounter();
+  showPage('builder');
+  updatePreview();
+  showToast('Demo data loaded!', 'info');
+}
+
+// ===== SHARE =====
+function shareCard() {
+  const data = getFormData();
+
+  if (!data.name.trim()) {
+    showToast('Please enter your name first', 'error');
+    return;
+  }
+
+  const slug = data.name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
+  const link = `https://shankar2006458.github.io/AuraCard/?card=${slug}`;
+
+  // set share text box
+  document.getElementById('share-link').textContent = link;
+
+  // generate modal QR
+  const qrBox = document.getElementById('share-qr');
+  qrBox.innerHTML = '';
+
+  new QRCode(qrBox, {
+    text: link,
+    width: 140,
+    height: 140,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  // open modal
+  document.getElementById('share-modal').classList.remove('hidden');
+
+  lucide.createIcons();
+}
+
+function closeShareModal() { document.getElementById('share-modal').classList.add('hidden'); }
+
+function copyShareLink() {
+  const link = document.getElementById('share-link').textContent.trim();
+
+  navigator.clipboard.writeText(link).then(() => {
+    showToast('Share link copied!', 'success');
+  }).catch(() => {
+    showToast('Copy failed', 'error');
+  });
+}
+
+// ===== PUBLIC VIEW =====
+function showPublicView() {
+  closeShareModal();
+
+  const params = new URLSearchParams(window.location.search);
+  const cardSlug = params.get('card');
+
+  let data = getFormData();
+
+  // If opened from shared link and no form data loaded
+  if (cardSlug && !data.name.trim()) {
+    loadFromLS();
+    data = getFormData();
+  }
+
+  if (!data.name.trim()) {
+    showToast('Please create your card first', 'error');
+    return;
+  }
+
+  renderPublicCard(data);
+  showPage('public');
+
+  const badge = document.getElementById('demo-badge');
+  if (badge) badge.classList.add('hidden');
+
+  const backBtn = document.getElementById('public-back-btn');
+  if (backBtn) {
+    backBtn.setAttribute('onclick', "showPage('builder')");
+    backBtn.innerHTML = `
+      <i data-lucide="arrow-left" style="width:14px;height:14px"></i>
+      Back to Editor
+    `;
+  }
+
+  lucide.createIcons();
+}
+
+// ===== DOWNLOAD QR =====
+function downloadQR() {
+  const qrEl = document.getElementById('share-qr') || document.getElementById('preview-qr');
+  const canvas = qrEl?.querySelector('canvas');
+  if (!canvas) { showToast('Generate a card first', 'error'); return; }
+  const link = document.createElement('a');
+  link.download = 'auracard-qr.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showToast('QR code downloaded!', 'success');
+}
+
+// ===== RIPPLE EFFECT =====
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-ripple');
+  if (!btn) return;
+  const ripple = document.createElement('span');
+  ripple.className = 'ripple-effect';
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+  ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 600);
+});
+
+// ===== TESTIMONIAL CAROUSEL =====
+function showTestimonial(idx) {
+  const cards = document.querySelectorAll('.testimonial-card');
+  const indicators = document.querySelectorAll('.testimonial-indicator');
+  cards.forEach((card, i) => {
+    card.style.opacity = i === idx ? '1' : '0';
+    card.style.pointerEvents = i === idx ? 'auto' : 'none';
+  });
+  indicators.forEach((ind, i) => {
+    ind.classList.toggle('bg-violet-600', i === idx);
+    ind.classList.toggle('bg-white/30', i !== idx);
+  });
+}
+
+function nextTestimonial() {
+  testimonialIndex = (testimonialIndex + 1) % 6;
+  showTestimonial(testimonialIndex);
+  resetTestimonialInterval();
+}
+
+function prevTestimonial() {
+  testimonialIndex = (testimonialIndex - 1 + 6) % 6;
+  showTestimonial(testimonialIndex);
+  resetTestimonialInterval();
+}
+
+function goToTestimonial(idx) {
+  testimonialIndex = idx;
+  showTestimonial(testimonialIndex);
+  resetTestimonialInterval();
+}
+
+function resetTestimonialInterval() {
+  clearInterval(testimonialInterval);
+  testimonialInterval = setInterval(() => {
+    testimonialIndex = (testimonialIndex + 1) % 6;
+    showTestimonial(testimonialIndex);
+  }, 5000);
+}
+
+function showDemoPublicCard() {
+  const demoData = {
+    name: 'Shankar Prasad Pyke',
+    title: 'Full Stack Developer',
+    company: 'TechCorp Solutions',
+    phone: '+91 98765 43210',
+    whatsapp: '+91 98765 43210',
+    email: 'shankar@techcorp.dev',
+    website: 'shankar.dev',
+    address: 'Hyderabad, India',
+    bio: 'Building scalable web applications & crafting digital experiences. Open source enthusiast.',
+    linkedin: 'https://linkedin.com',
+    instagram: 'https://instagram.com',
+    twitter: 'https://twitter.com',
+    facebook: '',
+    youtube: '',
+    theme: 'executive',
+    photo: ''
+  };
+
+  renderPublicCard(demoData);
+
+  const badge = document.getElementById('demo-badge');
+  if (badge) badge.classList.remove('hidden');
+
+  const backBtn = document.getElementById('public-back-btn');
+  if (backBtn) {
+    backBtn.setAttribute('onclick', "showPage('landing')");
+    backBtn.innerHTML = `
+      <i data-lucide="arrow-left" style="width:14px;height:14px"></i>
+      Back to Home
+    `;
+  }
+
+  showPage('public');
+
+  setTimeout(() => {
+    lucide.createIcons();
+  }, 100);
+}
+
+
+function renderPublicCard(data) {
+  const publicCard = document.getElementById('public-card');
+  if (!publicCard) return;
+
+  publicCard.className =
+    `theme-${data.theme} min-h-[480px] p-4 transition-all duration-500`;
+
+  publicCard.style.background = 'var(--card-bg)';
+
+  publicCard.innerHTML =
+    document.getElementById('card-content').innerHTML;
+
+  // Update copied values
+  const setText = (id, value) => {
+    const el = publicCard.querySelector('#' + id);
+    if (el) el.textContent = value || '';
+  };
+
+  setText('preview-name', data.name);
+  setText('preview-title', data.title);
+  setText('preview-company', data.company);
+  setText('preview-bio', data.bio);
+
+  const addr = publicCard.querySelector('#preview-address');
+  if (addr) {
+    addr.innerHTML = `<i data-lucide="map-pin" style="width:12px;height:12px"></i> ${data.address}`;
+  }
+
+  // QR
+  const qr = publicCard.querySelector('#preview-qr');
+  if (qr) {
+    qr.innerHTML = '';
+    new QRCode(qr, {
+      text: 'https://shankar2006458.github.io/AuraCard/',
+      width: 80,
+      height: 80,
+      colorDark: '#000',
+      colorLight: '#fff'
+    });
+  }
+
+  lucide.createIcons();
+}
+
+// ===== INIT =====
+setTimeout(() => {
+  document.getElementById('skeleton-screen').style.opacity = '0';
+  document.getElementById('skeleton-screen').style.transition = 'opacity 0.5s';
+  setTimeout(() => document.getElementById('skeleton-screen').remove(), 500);
+}, 1200);
+
+typeText();
+loadFromLS();
+resetTestimonialInterval();
+lucide.createIcons();
+
+const params = new URLSearchParams(window.location.search);
+const cardSlug = params.get('card');
+
+if (cardSlug) {
+  showPublicView();
+}
+</script>
+</html>
